@@ -11,6 +11,7 @@ const NAV = [
   { to: '/', label: 'Home', icon: 'sparkle', end: true },
   { to: '/schedule', label: 'Schedule', icon: 'calendar' },
   { to: '/speakers', label: 'Speakers', icon: 'users' },
+  { to: '/curated-agendas', label: 'Curated agendas', icon: 'ticket' },
   { to: '/my-agenda', label: 'My Agenda', icon: 'ticket' },
   { to: '/venues', label: 'Venues', icon: 'building' },
   { to: '/food', label: 'Food', icon: 'food' },

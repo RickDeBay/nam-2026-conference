@@ -103,6 +103,14 @@ what this app does.
   the source of truth for your own reservation state — never fall back to the
   payload a page was fetched with, or "removed" stays unreachable until a refresh.
 
+## Curated agendas
+
+**Tinker, Tailor, Soldier and Spy** are seeded attendees (`users.is_curator`), not
+speakers: they never appear on `/speakers`. Each holds one confirmed seat per slot, and
+**no session except a keynote is on two curators' agendas**. Say "Spy's agenda" or
+"curated agenda", never "track": a track classifies sessions, an agenda is one reader's
+route through them. The seed gives them no PRNG draws, so everyone else's data is unchanged.
+
 ## The attendee chain
 
 Four rules borrowed from real conferences; each writes state and gates the next:

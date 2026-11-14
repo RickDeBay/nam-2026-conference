@@ -8,6 +8,8 @@ import { SchedulePage } from './pages/SchedulePage.jsx';
 import { SessionPage } from './pages/SessionPage.jsx';
 import { SpeakersPage } from './pages/SpeakersPage.jsx';
 import { SpeakerPage } from './pages/SpeakerPage.jsx';
+import { CuratedAgendasPage } from './pages/CuratedAgendasPage.jsx';
+import { CuratorAgendaPage } from './pages/CuratorAgendaPage.jsx';
 import { MyAgendaPage } from './pages/MyAgendaPage.jsx';
 import { VenuesPage } from './pages/VenuesPage.jsx';
 import { FoodPage } from './pages/FoodPage.jsx';
@@ -41,6 +43,8 @@ export function App() {
         <Route path="sessions/:id" element={<SessionPage />} />
         <Route path="speakers" element={<SpeakersPage />} />
         <Route path="speakers/:id" element={<SpeakerPage />} />
+        <Route path="curated-agendas" element={<CuratedAgendasPage />} />
+        <Route path="curated-agendas/:id" element={<CuratorAgendaPage />} />
         <Route path="my-agenda" element={<MyAgendaPage />} />
         {/* the page was called My Plan until seats became the only action */}
         <Route path="my-plan" element={<Navigate to="/my-agenda" replace />} />

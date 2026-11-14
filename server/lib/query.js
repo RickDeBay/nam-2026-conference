@@ -194,6 +194,7 @@ export const toUser = (row, extra = {}) => ({
   interests: row.interests ? row.interests.split(',').filter(Boolean) : [],
   speakerId: row.speaker_id ?? null,
   isSpeaker: !!row.speaker_id,
+  isCurator: !!row.is_curator,
   ...extra,
 });
 

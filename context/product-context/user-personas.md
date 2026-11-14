@@ -36,3 +36,15 @@ around them. Their attendee account is linked to their speaker profile.
   without booking something that clashes with their own slot.
 - **Seeded as:** Andy Vays, Technical Principal (three sessions); Abraham
   Marín Pérez, AI Software Engineer (two sessions).
+
+## The curated agenda
+
+Not a person at the conference but a ready-made route through it: Tinker, Tailor,
+Soldier and Spy each hold one full agenda across the four days, for an attendee who
+would rather borrow a day than build one.
+
+- **Needs:** to see a coherent day, grouped by time slot, without opening the whole
+  schedule.
+- **Seeded as:** four curators who are attendees, never speakers. Their agendas share
+  no session except the keynotes. A curated agenda is not a track, and the app never
+  calls it one.

@@ -58,6 +58,7 @@ function HeroBar({ conference }) {
 const LINKS = [
   { to: '/schedule', label: 'Schedule', blurb: 'Every session, by day, room and track', icon: 'calendar' },
   { to: '/speakers', label: 'Speakers', blurb: 'Who is on stage, A to Z', icon: 'users' },
+  { to: '/curated-agendas', label: 'Curated agendas', blurb: 'Ready-made days from Tinker, Tailor, Soldier and Spy', icon: 'ticket' },
   { to: '/venues', label: 'Venues', blurb: 'Both sites, their rooms and getting between them', icon: 'building' },
   { to: '/food', label: 'Food & drink', blurb: 'What is open, and where', icon: 'food' },
   { to: '/expo', label: 'Expo', blurb: 'Partners and sponsors', icon: 'grid' },
