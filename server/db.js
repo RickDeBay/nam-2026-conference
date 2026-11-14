@@ -182,6 +182,13 @@ CREATE TABLE IF NOT EXISTS reservations (
   PRIMARY KEY (user_id, session_id)
 );
 
+-- One row per attendee who has cloned a curated agenda: you may do it once, ever.
+CREATE TABLE IF NOT EXISTS agenda_clones (
+  user_id    INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  curator_id INTEGER NOT NULL REFERENCES users(id),
+  created_at TEXT NOT NULL
+);
+
 -- Proof you actually turned up. Self check-in opens shortly before a session
 -- starts and closes when it ends; rating a session requires one.
 CREATE TABLE IF NOT EXISTS check_ins (
@@ -270,6 +277,7 @@ export function dropAll() {
   db.exec(`
     DROP TABLE IF EXISTS ratings;
     DROP TABLE IF EXISTS check_ins;
+    DROP TABLE IF EXISTS agenda_clones;
     DROP TABLE IF EXISTS reservations;
     DROP TABLE IF EXISTS speaker_follows;
     DROP TABLE IF EXISTS session_tags;

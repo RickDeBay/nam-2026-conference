@@ -157,6 +157,9 @@ sticky `glass` header, `<main id="main">`, and the footer.
 **Curated agendas** (`/curated-agendas`, `CuratedAgendasPage`) lists the four curators
 (`curator-card`, from `getCurators`); `/curated-agendas/:id` (`CuratorAgendaPage`) shows one
 curator's confirmed seats from `getSchedule` as `curator-day` > `curator-slot`.
+It offers `clone-agenda` only while the viewer holds no seat or waitlist place and the curator is
+not full (`curator-full` badge, also on the list cards), then shows `clone-summary` with
+`clone-seats`, `clone-waitlisted`, `clone-skipped` (counts plus titles, never folded together).
 
 **`HomePage`** (`/`) — static: nothing on it is about the signed-in attendee or
 what is live. It stacks `HeroBar` (`hero`: name, `conference.dates · city`, a

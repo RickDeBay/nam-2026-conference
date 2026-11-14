@@ -149,6 +149,27 @@ export function ConferenceProvider({ children }) {
     [reservations, reserveSeat, releaseSeat],
   );
 
+  /** Take a curator's whole agenda. Returns the summary, or undefined when refused. */
+  const cloneAgenda = useCallback(async (curatorId) => {
+    let summary;
+    try {
+      summary = await api.cloneAgenda(currentUserId, curatorId, clock);
+    } catch (err) {
+      const reason = err.payload?.rejected;
+      toast({
+        message: {
+          'not-empty': 'You already have seats, so there is nothing to clone into',
+          'already-cloned': 'You have already cloned an agenda',
+          'curator-full': 'That agenda has been cloned as many times as it can be',
+        }[reason] ?? `Could not clone that agenda: ${err.message}`,
+        icon: 'alert',
+      });
+      return undefined;
+    }
+    summary.states.forEach(applySeatState);
+    return summary;
+  }, [currentUserId, applySeatState, toast, clock]);
+
   const resolveConflict = useCallback(async (swap) => {
     if (!conflict) return;
     if (swap) {
@@ -189,6 +210,7 @@ export function ConferenceProvider({ children }) {
       reserveSeat,
       releaseSeat,
       toggleSeat,
+      cloneAgenda,
       onAgenda: (id) => reservations.has(id),
       conflict,
       resolveConflict,
@@ -197,7 +219,7 @@ export function ConferenceProvider({ children }) {
       roomById: Object.fromEntries((data?.rooms ?? []).map((r) => [r.id, r])),
     };
   }, [data, error, clock, currentUserId, followingIds, toggleFollow,
-      reservations, seatCounts, reserveSeat, releaseSeat, toggleSeat,
+      reservations, seatCounts, reserveSeat, releaseSeat, toggleSeat, cloneAgenda,
       conflict, resolveConflict]);
 
   return <ConferenceContext.Provider value={value}>{children}</ConferenceContext.Provider>;

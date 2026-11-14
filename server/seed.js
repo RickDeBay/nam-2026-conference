@@ -601,8 +601,12 @@ const USERS = [
   ['Tailor', 'tailor@orbitconf.dev', 'Curator', 'Circus Guild', 'they/them', 'London', 'Europe/London', 'Standard', 'Cuts a day to fit. His agenda favours the talks that change how a team works.', 'Context Engineering,Governance,Cost Optimization,Evaluation'],
   ['Soldier', 'soldier@orbitconf.dev', 'Curator', 'Circus Guild', 'they/them', 'London', 'Europe/London', 'Standard', 'Marches through the hard problems. Their agenda is security, reliability and scale.', 'Red Teaming,Guardrails,Latency,Compliance'],
   ['Spy', 'spy@orbitconf.dev', 'Curator', 'Circus Guild', 'they/them', 'London', 'Europe/London', 'Standard', 'Listens at the edges. Their agenda is the research and the surprises.', 'Distillation,Computer Vision,Quantization,Evaluation'],
+  // Fixtures with an agenda that is truly empty (no plan, follows or queue), so a browser test can clone into it.
+  ['Priya Raman', 'priya@orbitconf.dev', 'Attendee', 'Circus Guild', 'she/her', 'Austin', 'America/Chicago', 'Standard', 'Arrived with a blank agenda.', 'Agent Design'],
+  ['Tomas Berg', 'tomas@orbitconf.dev', 'Attendee', 'Circus Guild', 'he/him', 'Oslo', 'Europe/Oslo', 'Standard', 'Arrived with a blank agenda.', 'Evaluation'],
 ];
 const CURATORS = ['Tinker', 'Tailor', 'Soldier', 'Spy'];
+const EMPTY_AGENDAS = ['Priya Raman', 'Tomas Berg'];
 const uStmt = prep('INSERT INTO users (name,email,job_title,company,initials,accent,image_url,bio,pronouns,home_city,timezone,ticket_tier,interests,speaker_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
 const speakerIdFor = (name) => db.prepare('SELECT id FROM speakers WHERE name = ?').get(name)?.id ?? null;
 USERS.forEach((u, i) => {
@@ -620,7 +624,7 @@ USERS.forEach((u, i) => {
 db.prepare(`UPDATE users SET is_curator = 1 WHERE name IN (${CURATORS.map(() => '?').join(',')})`).run(...CURATORS);
 const users = db.prepare('SELECT * FROM users').all();
 // Curators are seeded last and apart, so none of the attendee draws below moves.
-const attendees = users.filter((u) => !u.is_curator);
+const attendees = users.filter((u) => !u.is_curator && !EMPTY_AGENDAS.includes(u.name));
 
 /**
  * Attendee plans — a realistic day, not a full timetable.

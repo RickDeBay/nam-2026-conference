@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { db } from '../db.js';
 import { SESSION_SELECT, toUser, toSpeaker, toSession } from '../lib/query.js';
 import { reserveSeat, releaseSeat, seatState } from '../lib/seats.js';
+import { cloneAgenda, curatorStandings } from '../lib/clone.js';
 import { attendanceState, checkIn, rateSession } from '../lib/attendance.js';
 import { todayFor, scheduleFor } from '../lib/agenda.js';
 import { agendaCalendar, baseUrlFor } from '../lib/ical.js';
@@ -36,7 +37,8 @@ usersRouter.get('/', (req, res) => {
 
 // The four curators, in id order. Registered before /:id, which would read "curators" as an id.
 usersRouter.get('/curators', (req, res) => {
-  res.json(curatorRows.all().map((u) => toUser(u)));
+  const standings = curatorStandings();
+  res.json(curatorRows.all().map((u) => toUser(u, standings.get(u.id))));
 });
 
 usersRouter.get('/:id', (req, res) => {
@@ -93,6 +95,18 @@ usersRouter.get('/:id/schedule', (req, res) => {
  * gives it back and promotes whoever has waited longest. Both return the whole
  * seat state so the client never has to guess.
  */
+/**
+ * Clone a curator's agenda into an empty one. 409 carries `{ rejected }`:
+ * not-empty, already-cloned or curator-full. `now` comes from the client.
+ */
+usersRouter.post('/:id/clone/:curatorId', (req, res) => {
+  if (!userExists.get(req.params.id)) return res.status(404).json({ error: 'Attendee not found' });
+  const result = cloneAgenda(Number(req.params.id), Number(req.params.curatorId),
+    { day: req.body?.day, time: req.body?.time });
+  if (!result) return res.status(404).json({ error: 'Curator not found' });
+  res.status(result.rejected ? 409 : 200).json(result);
+});
+
 usersRouter.put('/:id/reservations/:sessionId', (req, res) => {
   if (!userExists.get(req.params.id)) return res.status(404).json({ error: 'Attendee not found' });
   const state = reserveSeat(Number(req.params.id), Number(req.params.sessionId),

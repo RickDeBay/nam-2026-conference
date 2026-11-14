@@ -20,6 +20,8 @@ export const ATTENDEES = {
   sofia: 4,      // VIP, biggest plan
   marcus: 5,     // Standard, smallest plan
   abraham: 6,      // Speaker — presenting 2 sessions
+  priya: 11,     // empty agenda, hidden from the switcher; owned by the clone.ui lane
+  tomas: 12,     // empty agenda, hidden from the switcher; owned by the clone.ui lane
 };
 
 /**
@@ -104,7 +106,7 @@ export async function clearAgendaFor(request, userId, day) {
  * Lanes marked `clean` are days the seed leaves empty for that attendee, so the
  * test may clear the whole day; everywhere else, release only what you booked.
  */
-const { jonas, andy, kenji, sofia, marcus, abraham } = ATTENDEES;
+const { jonas, andy, kenji, sofia, marcus, abraham, priya, tomas } = ATTENDEES;
 export const LANES = {
   'seats.count':      { desktop: { user: jonas, day: 2, slot: '09:00' },  mobile: { user: andy, day: 2, slot: '11:30' } },
   'seats.reload':     { desktop: { user: sofia, day: 2, slot: '13:30' },  mobile: { user: abraham, day: 2, slot: '10:15' } },
@@ -132,6 +134,9 @@ export const LANES = {
   'attendance.checkin-toast': { desktop: { user: kenji, day: 2, slot: '09:00', agenda: false },  mobile: { user: andy, day: 2, slot: '09:00', agenda: false } },
   // Rates for real, so it must land on day index 0 — `today` — per
   // smoke.spec.js's "no session in the future carries a rating".
+  // Priya and Tomas own their whole agenda and clone once each, ever, so each takes a different
+  // curator (a curator can be cloned twice) and no other lane uses them. Run it again only after a reseed.
+  'clone.ui':         { desktop: { user: priya, day: 0, curator: 7 },       mobile: { user: tomas, day: 0, curator: 8 } },
   'attendance.rating-toast':  { desktop: { user: marcus, day: 0, slot: '09:00', agenda: false }, mobile: { user: abraham, day: 0, slot: '09:00', agenda: false } },
 };
 

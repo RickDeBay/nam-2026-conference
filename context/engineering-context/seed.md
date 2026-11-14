@@ -101,6 +101,11 @@ attendee switcher hides them). A curated agenda is *not a track* — tracks clas
 a curator's agenda is one reader's route through them. They are held out of `attendees`, so
 the plans, queues and follows draws are unchanged.
 
+**Empty-agenda fixtures** (ids 11 Priya Raman, 12 Tomas Berg, company `Circus Guild`, so also
+hidden from the switcher): no plan, follows or queue (held out of `attendees` by name), so a
+browser test can clone a curator's agenda into a truly empty one. They count as attendees
+for the clone cap (8 non-curators).
+
 ## Invariants
 
 - Never `Math.random()` or `Date.now()`-dependent values other than `START_DATE`.
