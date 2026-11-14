@@ -199,3 +199,24 @@ describe('Every endpoint answers', () => {
     assert.deepEqual(missing, [], `untested endpoints: ${missing.join(', ')}`);
   });
 });
+
+describe('Several tracks in one filter', () => {
+  test('trackSlug=a,b returns exactly the union of a and b', async () => {
+    const boot = await api.json('/bootstrap');
+    const [a, b] = boot.tracks.slice(0, 2).map((t) => t.slug);
+    const ofA = await api.json(`/sessions?trackSlug=${a}`);
+    const ofB = await api.json(`/sessions?trackSlug=${b}`);
+    const both = await api.json(`/sessions?trackSlug=${a},${b}`);
+    assert.ok(ofA.length > 0 && ofB.length > 0);
+    assert.deepEqual(new Set(both.map((s) => s.id)), new Set([...ofA, ...ofB].map((s) => s.id)));
+    assert.equal(both.length, ofA.length + ofB.length);
+    for (const s of both) assert.ok([a, b].includes(s.track.slug), `${s.track.slug} is neither track`);
+  });
+
+  test('blank entries are ignored', async () => {
+    const a = (await api.json('/bootstrap')).tracks[0].slug;
+    const one = await api.json(`/sessions?trackSlug=${a}`);
+    const padded = await api.json(`/sessions?trackSlug=,${a},`);
+    assert.equal(padded.length, one.length);
+  });
+});
