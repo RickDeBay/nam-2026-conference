@@ -193,7 +193,7 @@ describe('Every endpoint answers', () => {
       'GET users/:id/reservations/:sessionId',
       'PUT users/:id/reservations/:sessionId', 'PUT users/:id/checkins/:sessionId',
       'PUT users/:id/ratings/:sessionId', 'PUT users/:id/follows/:speakerId',
-      'DELETE users/:id/reservations/:sessionId', 'DELETE users/:id/follows/:speakerId',
+      'DELETE users/:id/reservations', 'DELETE users/:id/reservations/:sessionId', 'DELETE users/:id/follows/:speakerId',
     ];
 
     const missing = mounted.filter((route) => !covered.includes(route));

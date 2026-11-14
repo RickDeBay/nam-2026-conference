@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { db } from '../db.js';
 import { SESSION_SELECT, toUser, toSpeaker, toSession } from '../lib/query.js';
-import { reserveSeat, releaseSeat, seatState } from '../lib/seats.js';
+import { reserveSeat, releaseSeat, clearAgenda, seatState } from '../lib/seats.js';
 import { cloneAgenda, curatorStandings } from '../lib/clone.js';
 import { attendanceState, checkIn, rateSession } from '../lib/attendance.js';
 import { todayFor, scheduleFor } from '../lib/agenda.js';
@@ -105,6 +105,12 @@ usersRouter.post('/:id/clone/:curatorId', (req, res) => {
     { day: req.body?.day, time: req.body?.time });
   if (!result) return res.status(404).json({ error: 'Curator not found' });
   res.status(result.rejected ? 409 : 200).json(result);
+});
+
+/** Let go of every seat and waitlist place at once; also resets the attendee's clone. */
+usersRouter.delete('/:id/reservations', (req, res) => {
+  if (!userExists.get(req.params.id)) return res.status(404).json({ error: 'Attendee not found' });
+  res.json(clearAgenda(Number(req.params.id)));
 });
 
 usersRouter.put('/:id/reservations/:sessionId', (req, res) => {

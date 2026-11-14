@@ -50,6 +50,7 @@ export const reserveSeat = (userId, sessionId, now) =>
 export const cloneAgenda = (userId, curatorId, now) =>
   api(`/users/${userId}/clone/${curatorId}`, { method: 'POST', body: JSON.stringify(now ?? {}) });
 export const releaseSeat = (userId, sessionId) => api(`/users/${userId}/reservations/${sessionId}`, { method: 'DELETE' });
+export const clearAgenda = (userId) => api(`/users/${userId}/reservations`, { method: 'DELETE' });
 
 export const getAttendance = (userId, sessionId, { day, time }) =>
   api(`/users/${userId}/attendance/${sessionId}${qs({ day, time })}`);

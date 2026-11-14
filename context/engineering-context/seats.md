@@ -12,6 +12,7 @@ tests:
   - tests/api/seats.test.js
   - tests/api/overlap.test.js
   - tests/api/clone.test.js
+  - tests/api/clear.test.js
   - tests/curated-clone.spec.js
   - tests/seats.spec.js
 related: [attendance, agenda, clock, architecture, testing]
@@ -118,7 +119,13 @@ and can still be released.
 Testids: `seat-panel`, `seat-count`, `seats-left`, `reservation-confirmed`,
 `reservation-waitlisted`, `reserve-seat`, `session-ended-seat`, `session-ended`,
 `release-seat`, `conflict-dialog`,
-`conflict-keep`, `conflict-swap`.
+`conflict-keep`, `conflict-swap`, `clear-agenda`, `clear-dialog`, `clear-cancel`, `clear-confirm`.
+
+**Clearing.** `clearAgenda(userId)` in `seats.js` runs `releaseSeat` for every reservation row
+(so promotion and `seats_taken` stay in one place) and deletes the attendee's `agenda_clones`
+row, in one transaction; it returns `{ released: [{ sessionId, status }], states }`. Route
+`DELETE /api/users/:id/reservations` (404 unknown attendee). Check-ins and ratings are untouched.
+The store's `clearAgenda()` applies each state and toasts; My Agenda confirms first.
 
 ## Cloning a curated agenda
 
@@ -131,7 +138,7 @@ confirmed sessions not yet over, returning `{ curatorId, seats, waitlisted, skip
 session). `cloneCap()` is `ceil(non-curator users / curators)`; `curatorStandings()` adds
 `cloneCount`, `cloneCap`, `isFull` to `GET /users/curators`. Without a clock nothing is
 skipped. The store's `cloneAgenda(curatorId)` applies each state and toasts a refusal; the
-button (`clone-agenda`) shows only while `reservations.size === 0` and the curator is not full; with any reservation (and not full) `clone-unavailable` explains why instead.
+button (`clone-agenda`) shows only while `reservations.size === 0` and the curator is not full; with any reservation (and not full) `clone-unavailable` explains why instead. Clearing the agenda deletes the clone row, so they can clone again and the curator's `cloneCount` drops.
 
 ## Invariants
 
