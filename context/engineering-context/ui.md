@@ -158,7 +158,8 @@ sticky `glass` header, `<main id="main">`, and the footer.
 (`curator-card`, from `getCurators`); `/curated-agendas/:id` (`CuratorAgendaPage`) shows one
 curator's confirmed seats from `getSchedule` as `curator-day` > `curator-slot`.
 It offers `clone-agenda` only while the viewer holds no seat or waitlist place and the curator is
-not full (`curator-full` badge, also on the list cards), then shows `clone-summary` with
+not full (`curator-full` badge, also on the list cards); a viewer who holds any shows
+`clone-unavailable` (a line linking to `/my-agenda`) instead, and a full curator shows neither. After a clone it shows `clone-summary` with
 `clone-seats`, `clone-waitlisted`, `clone-skipped` (counts plus titles, never folded together).
 
 **`HomePage`** (`/`) — static: nothing on it is about the signed-in attendee or

@@ -71,11 +71,17 @@ export function CuratorAgendaPage() {
         </p>
       )}
       {summary ? <CloneSummary summary={summary} />
-        : reservations.size === 0 && !curator.isFull && (
+        : curator.isFull ? null
+        : reservations.size === 0 ? (
           <button type="button" data-testid="clone-agenda" onClick={clone} disabled={busy}
             className="rounded-lg bg-violet-500 px-4 py-2 text-sm font-semibold text-white hover:bg-violet-400 disabled:opacity-60">
             Clone this agenda
           </button>
+        ) : (
+          <p data-testid="clone-unavailable" className="text-sm text-muted">
+            You already have sessions on your agenda. Cloning starts from an empty one.{' '}
+            <Link to="/my-agenda" className="text-violet-300 hover:underline">My Agenda</Link>
+          </p>
         )}
       {data.schedule.days.map((day) => (
         <section key={day.date} data-testid="curator-day" className="space-y-3">
