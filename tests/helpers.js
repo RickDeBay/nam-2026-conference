@@ -137,6 +137,9 @@ export const LANES = {
   // Priya and Tomas own their whole agenda and clone once each, ever, so each takes a different
   // curator (a curator can be cloned twice) and no other lane uses them. Run it again only after a reseed.
   'clone.ui':         { desktop: { user: priya, day: 0, curator: 7 },       mobile: { user: tomas, day: 0, curator: 8 } },
+  // Books one session in a free slot, swaps within it, and gives everything back. Day 1 (index 1)
+  // has a full session in every slot; desktop and mobile hold different attendees.
+  'agenda.swap':      { desktop: { user: jonas, day: 1 },                   mobile: { user: andy, day: 1 } },
   'attendance.rating-toast':  { desktop: { user: marcus, day: 0, slot: '09:00', agenda: false }, mobile: { user: abraham, day: 0, slot: '09:00', agenda: false } },
 };
 

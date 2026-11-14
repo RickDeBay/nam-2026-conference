@@ -37,3 +37,24 @@ export const plural = (n, one, many = `${one}s`) => `${n.toLocaleString()} ${n =
 /** The schedule rail's "N sessions · M today"/"M on Day 1" line. `dayPhrase` is the caller's job. */
 export const agendaSummary = (total, bookedOnDay, dayPhrase) =>
   `${total === 1 ? 'session' : 'sessions'} · ${bookedOnDay} ${dayPhrase}`;
+
+/**
+ * What My Agenda shows: the sessions the store says you hold (seat or waitlist
+ * place), grouped by day then start time, with hours totalled from the same
+ * answer. Booked minutes are confirmed seats only; waitlisted time is kept
+ * apart — see CLAUDE.md, "Hours are hours you hold a chair for". `days` is
+ * `[{ date, sessions }]`, `statusOf(id)` the store's `reservationFor`.
+ */
+export function agendaDays(days, statusOf) {
+  return days.map(({ date, sessions }) => {
+    const held = sessions.filter((s) => statusOf(s.id))
+      .sort((a, b) => a.startsAt.localeCompare(b.startsAt) || a.id - b.id);
+    const minutes = (status) => held.filter((s) => statusOf(s.id) === status)
+      .reduce((n, s) => n + s.durationMins, 0);
+    const slots = [...Map.groupBy(held, (s) => s.startsAt)].map(([startsAt, items]) => ({ startsAt, sessions: items }));
+    return { date, slots, totalMinutes: minutes('confirmed'), waitlistedMinutes: minutes('waitlisted') };
+  }).filter((d) => d.slots.length > 0).sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/** 90 → "1.5h" */
+export const hoursOf = (mins) => `${+(mins / 60).toFixed(1)}h`;

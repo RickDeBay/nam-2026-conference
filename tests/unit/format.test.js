@@ -1,6 +1,6 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { time, timeRange, dayLabel, shortDay, relativeDate, plural, agendaSummary } from '../../src/lib/format.js';
+import { time, timeRange, dayLabel, shortDay, relativeDate, plural, agendaSummary, agendaDays } from '../../src/lib/format.js';
 
 describe('Clock times read as people say them', () => {
   test('midnight and noon are twelve, not zero', () => {
@@ -118,5 +118,31 @@ describe('The schedule rail\'s agenda line pluralises on the total and names the
 
   test('a day other than the clock\'s is named instead of assumed to be today', () => {
     assert.equal(agendaSummary(3, 2, 'on Day 1'), 'sessions · 2 on Day 1');
+  });
+});
+
+describe('My Agenda groups what you hold by day and slot, counting only confirmed time', () => {
+  const s = (id, startsAt, durationMins, day = '2026-10-12') => ({ id, day, startsAt, durationMins });
+  const days = [
+    { date: '2026-10-12', sessions: [s(1, '09:00', 45), s(2, '09:00', 60), s(3, '10:15', 30)] },
+    { date: '2026-10-13', sessions: [s(4, '09:00', 45)] },
+  ];
+
+  test('slots group by start time, in time order, and days with nothing held are dropped', () => {
+    const status = { 1: 'confirmed', 3: 'waitlisted' };
+    const out = agendaDays(days, (id) => status[id] ?? null);
+    assert.equal(out.length, 1);
+    assert.deepEqual(out[0].slots.map((x) => [x.startsAt, x.sessions.map((r) => r.id)]), [['09:00', [1]], ['10:15', [3]]]);
+  });
+
+  test('booked minutes are confirmed seats only; waitlisted minutes are totalled apart', () => {
+    const status = { 1: 'confirmed', 2: 'waitlisted', 3: 'waitlisted' };
+    const [day] = agendaDays(days, (id) => status[id] ?? null);
+    assert.equal(day.totalMinutes, 45);
+    assert.equal(day.waitlistedMinutes, 90);
+  });
+
+  test('a seat released in the store leaves the page at once, whatever the payload said', () => {
+    assert.deepEqual(agendaDays(days, () => null), []);
   });
 });
