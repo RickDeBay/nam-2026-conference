@@ -232,4 +232,57 @@ test.describe('Ended sessions', () => {
     await expect(page).toHaveURL(/track=/);
     for (const l of ['Venue', 'Level', 'Format', 'Topic']) await expect(page.getByLabel(l)).toBeVisible();
   });
+  test('several tracks can be selected, removed, reloaded and linked', async ({ page }) => {
+    const days = await conferenceDays();
+    const boot = await (await fetch(`${API}/bootstrap`)).json();
+    const [a, b] = boot.tracks.slice(0, 2).map((t) => t.slug);
+    const count = async (q) => (await (await fetch(`${API}/sessions?day=${days[1]}${q}`)).json()).length;
+    const label = (n) => `${n} session${n === 1 ? '' : 's'}`;
+    const pill = (slug) => page.getByTestId(`track-${slug}`);
+    const counted = (n) => expect(page.getByTestId('result-count')).toHaveText(label(n));
+
+    await visit(page, `/schedule?day=${days[1]}&view=list`);
+    await waitForResults(page);
+    const filters = page.getByRole('button', { name: /^Filters/ });
+    if (await filters.isVisible()) await filters.click();
+    await expect(page.getByTestId('track-all')).toHaveAttribute('aria-pressed', 'true');
+
+    await pill(a).click();
+    await pill(b).click();
+    await expect(pill(a)).toHaveAttribute('aria-pressed', 'true');
+    await expect(pill(b)).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('track-all')).toHaveAttribute('aria-pressed', 'false');
+    await counted(await count(`&trackSlug=${a},${b}`));
+    await expect(page.getByTestId('view-grid')).toBeDisabled();
+    await shotForPR(page, 'two tracks selected on the schedule');
+
+    await page.reload();
+    await waitForResults(page);
+    if (await filters.isVisible()) await filters.click();
+    await expect(pill(a)).toHaveAttribute('aria-pressed', 'true');
+    await expect(pill(b)).toHaveAttribute('aria-pressed', 'true');
+    await counted(await count(`&trackSlug=${a},${b}`));
+
+    await pill(a).click();
+    await expect(pill(a)).toHaveAttribute('aria-pressed', 'false');
+    await expect(pill(b)).toHaveAttribute('aria-pressed', 'true');
+    await counted(await count(`&trackSlug=${b}`));
+
+    await pill(b).click();
+    await expect(page).not.toHaveURL(/track=/);
+    await counted(await count(''));
+
+    await pill(a).click();
+    await pill(b).click();
+    await page.getByTestId('track-all').click();
+    await expect(page).not.toHaveURL(/track=/);
+    await counted(await count(''));
+
+    await visit(page, `/schedule?day=${days[1]}&view=list&track=${a}`);
+    await waitForResults(page);
+    if (await filters.isVisible()) await filters.click();
+    await expect(pill(a)).toHaveAttribute('aria-pressed', 'true');
+    await expect(pill(b)).toHaveAttribute('aria-pressed', 'false');
+    await counted(await count(`&trackSlug=${a}`));
+  });
 });
