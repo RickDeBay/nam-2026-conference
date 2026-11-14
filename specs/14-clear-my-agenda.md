@@ -5,7 +5,7 @@ My Agenda gets a **Clear my agenda** button (hidden while the agenda is empty). 
 
 ## Where
 - `server/lib/seats.js` — new `clearAgenda(userId)`, a `db.transaction` that calls `releaseSeat` for each of the user's reservation rows (so promotion and `seats_taken` stay in one place) and returns `{ released: [{ sessionId, status }], states: [seatState…] }`; new prepared statement listing a user's reservations.
-- `server/lib/clone.js` — export a `forgetClone(userId)` (`DELETE FROM agenda_clones WHERE user_id = ?`), called from `clearAgenda` inside the same transaction (seats.js imports clone.js already depends on seats.js, so put the delete statement in seats.js instead to avoid a cycle). Does not touch `check_ins` or `ratings`.
+- `server/lib/seats.js` (same function) — also runs `DELETE FROM agenda_clones WHERE user_id = ?` in that transaction, as a prepared statement in seats.js because `clone.js` already imports `seats.js` and importing back would be a cycle. `curatorStandings()` in `clone.js` counts rows, so the count drops with no change there; nothing touches `check_ins` or `ratings`.
 - `server/routes/users.js` — `DELETE /:id/reservations` (collection route, next to the existing item routes): 404 unknown user, else `clearAgenda`.
 - `src/lib/api.js` — `clearAgenda(userId)`, the only `fetch` caller.
 - `src/lib/store.jsx` — `clearAgenda()`: calls the api, `applySeatState` for each returned state, empties `reservations` for those sessions, toasts "Agenda cleared"; failure toasts and applies nothing. Exposed on `useConference()`.
