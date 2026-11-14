@@ -20,6 +20,11 @@ async function confirmedMinutes(request, userId) {
   return days.reduce((n, d) => n + d.totalMinutes, 0);
 }
 
+async function waitlistedMinutes(request, userId) {
+  const { days } = await (await request.get(`${API}/users/${userId}/schedule`)).json();
+  return days.reduce((n, d) => n + d.waitlistedMinutes, 0);
+}
+
 async function seatsTaken(request, id) {
   return (await (await request.get(`${API}/sessions/${id}`)).json()).seatsTaken;
 }
@@ -31,6 +36,8 @@ test('My Agenda lists seats by day and slot, and swaps within a slot', async ({ 
   const reserve = (id, day, time) => request.put(`${API}/users/${lane.user}/reservations/${id}`, { data: { day, time } });
   const row = (title) => page.getByTestId('agenda-row').filter({ hasText: title });
   const at = await momentOn(1, '08:00');
+
+  const waitlistedBefore = await waitlistedMinutes(request, lane.user);
 
   try {
     expect((await reserve(from.id, days[0], '08:00')).status()).toBe(200);
@@ -66,9 +73,8 @@ test('My Agenda lists seats by day and slot, and swaps within a slot', async ({ 
     await expect(page.getByTestId('swap-waitlist-note')).toContainText('waitlist');
     await expect(row(to.title)).toHaveCount(0);
     // waitlisted time is shown apart from the booked hours
-    const { days: sched } = await (await request.get(`${API}/users/${lane.user}/schedule`)).json();
-    const waitlisted = sched.reduce((n, d) => n + d.waitlistedMinutes, 0);
-    expect(waitlisted).toBe(full.durationMins);
+    const waitlisted = await waitlistedMinutes(request, lane.user);
+    expect(waitlisted).toBe(waitlistedBefore + full.durationMins);
     await expect(page.getByTestId('agenda-booked-hours')).toHaveText(hoursOf(await confirmedMinutes(request, lane.user)));
     await expect(page.getByTestId('agenda-booked-note')).toContainText(`+${hoursOf(waitlisted)} waitlisted`);
     await shotForPR(page, 'My Agenda after swapping into a full session');
