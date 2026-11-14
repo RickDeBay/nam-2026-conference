@@ -170,6 +170,19 @@ export function ConferenceProvider({ children }) {
     return summary;
   }, [currentUserId, applySeatState, toast, clock]);
 
+  /** Give back every seat and waitlist place. Returns true when it worked. */
+  const clearAgenda = useCallback(async () => {
+    try {
+      const { states } = await api.clearAgenda(currentUserId);
+      states.forEach(applySeatState);
+    } catch (err) {
+      toast({ message: `Could not clear your agenda: ${err.message}`, icon: 'alert' });
+      return false;
+    }
+    toast({ message: 'Agenda cleared', icon: 'check' });
+    return true;
+  }, [currentUserId, applySeatState, toast]);
+
   const resolveConflict = useCallback(async (swap) => {
     if (!conflict) return;
     if (swap) {
@@ -242,6 +255,7 @@ export function ConferenceProvider({ children }) {
       releaseSeat,
       toggleSeat,
       cloneAgenda,
+      clearAgenda,
       swapSeat,
       onAgenda: (id) => reservations.has(id),
       conflict,
@@ -251,7 +265,7 @@ export function ConferenceProvider({ children }) {
       roomById: Object.fromEntries((data?.rooms ?? []).map((r) => [r.id, r])),
     };
   }, [data, error, clock, currentUserId, followingIds, toggleFollow,
-      reservations, seatCounts, reserveSeat, releaseSeat, toggleSeat, cloneAgenda, swapSeat,
+      reservations, seatCounts, reserveSeat, releaseSeat, toggleSeat, cloneAgenda, clearAgenda, swapSeat,
       conflict, resolveConflict]);
 
   return <ConferenceContext.Provider value={value}>{children}</ConferenceContext.Provider>;

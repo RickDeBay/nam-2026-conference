@@ -135,3 +135,23 @@ export const releaseSeat = db.transaction((userId, sessionId) => {
 
   return { ...seatState(sessionId, userId), promoted };
 });
+
+const reservationsOf = db.prepare('SELECT session_id, status FROM reservations WHERE user_id = ? ORDER BY session_id');
+const forgetClone = db.prepare('DELETE FROM agenda_clones WHERE user_id = ?');
+
+/**
+ * Give back everything this attendee holds — seats and waitlist places, past
+ * sessions included — through `releaseSeat`, so promotion and `seats_taken`
+ * stay in one place. Also forgets their clone (`agenda_clones`, deleted here
+ * because clone.js imports this file), so they can clone again and the
+ * curator's count drops. Check-ins and ratings are left alone.
+ */
+export const clearAgenda = db.transaction((userId) => {
+  const held = reservationsOf.all(userId);
+  const states = held.map((r) => {
+    const { promoted, ...state } = releaseSeat(userId, r.session_id);
+    return state;
+  });
+  forgetClone.run(userId);
+  return { released: held.map((r) => ({ sessionId: r.session_id, status: r.status })), states };
+});

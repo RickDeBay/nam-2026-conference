@@ -1,7 +1,7 @@
 import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import Database from 'better-sqlite3';
-import { attendedSession, days, startApi } from './harness.js';
+import { attendedSession, days, overlaps, startApi } from './harness.js';
 
 /**
  * Clearing My Agenda, at the API. Attendees 11, 12 and 13 are seeded empty; 7 is the
@@ -33,7 +33,9 @@ const lastDaySessions = async () =>
 describe('Clearing My Agenda', () => {
   test('releases every seat and waitlist place, past ones included, and keeps check-ins and ratings', async () => {
     const { userId } = await attendedSession(api);
-    const [open] = await lastDaySessions();
+    const held = new Set((await api.json(`/users/${userId}`)).reservations.map((r) => r.sessionId));
+    const mine = (await api.json('/sessions')).filter((x) => held.has(x.id));
+    const [open] = (await lastDaySessions()).filter((s) => !mine.some((m) => overlaps(m, s)));
     fillSession(open.id);
     assert.equal((await reserve(userId, open.id)).body.status, 'waitlisted');
 

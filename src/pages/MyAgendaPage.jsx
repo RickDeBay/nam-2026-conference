@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDocumentTitle } from '../lib/useDocumentTitle.js';
 import { useConference, useFetch } from '../lib/store.jsx';
 import * as api from '../lib/api.js';
@@ -14,12 +14,14 @@ import { SessionCard } from '../components/SessionCard.jsx';
  */
 export function MyAgendaPage() {
   useDocumentTitle('My Agenda');
-  const { currentUser, currentUserId, reservationFor } = useConference();
+  const { currentUser, currentUserId, reservationFor, clearAgenda } = useConference();
   const { data, loading, error, reload } = useFetch(() => api.getSchedule(currentUserId), [currentUserId]);
   // Sessions swapped into after the payload was fetched
   const [added, setAdded] = useState(() => new Map());
   // The row that was just swapped into a full room; it outlives the row it replaced
   const [waitNote, setWaitNote] = useState(null);
+  const [confirming, setConfirming] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const days = useMemo(() => {
     const pool = new Map();
@@ -33,6 +35,13 @@ export function MyAgendaPage() {
     return <div className="space-y-4"><SectionHeader eyebrow="Your conference" title="My Agenda" /><Skeleton className="h-40" /></div>;
   }
   if (error) return <ErrorState error={error} onRetry={reload} />;
+
+  async function confirmClear() {
+    setClearing(true);
+    const ok = await clearAgenda();
+    setClearing(false);
+    if (ok) { setConfirming(false); setAdded(new Map()); setWaitNote(null); }
+  }
 
   const booked = days.reduce((n, d) => n + d.totalMinutes, 0);
   const waitlisted = days.reduce((n, d) => n + d.waitlistedMinutes, 0);
@@ -49,11 +58,17 @@ export function MyAgendaPage() {
           icon="ticket"
           title="Nothing on your agenda yet"
           description="Add a session and it takes a seat here."
-          action={<Button to="/schedule" size="sm">Browse the schedule</Button>}
+          action={(
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button to="/curated-agendas" variant="primary" size="sm">Browse curated agendas</Button>
+              <Button to="/schedule" size="sm">Browse the schedule</Button>
+            </div>
+          )}
         />
       ) : (
         <>
-          <div className="grid max-w-xs">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="grid w-full max-w-xs">
             <Stat
               value={hoursOf(booked)}
               label="Hours booked"
@@ -61,6 +76,8 @@ export function MyAgendaPage() {
               note={waitlisted > 0 ? `+${hoursOf(waitlisted)} waitlisted` : null}
               noteTestId="agenda-booked-note"
             />
+          </div>
+            <Button size="sm" data-testid="clear-agenda" onClick={() => setConfirming(true)}>Clear my agenda</Button>
           </div>
           {days.map((day) => (
             <section key={day.date} data-testid="agenda-day" className="space-y-4">
@@ -85,6 +102,37 @@ export function MyAgendaPage() {
           ))}
         </>
       )}
+      {confirming && <ClearDialog busy={clearing} onConfirm={confirmClear} onCancel={() => setConfirming(false)} />}
+    </div>
+  );
+}
+
+/** Clearing gives up every seat and waitlist place, so it asks first. */
+function ClearDialog({ busy, onConfirm, onCancel }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape' && !busy) onCancel(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [busy, onCancel]);
+
+  return (
+    <div className="fixed inset-0 z-[70] grid place-items-end sm:place-items-center" role="dialog" aria-modal="true"
+      aria-labelledby="clear-title" data-testid="clear-dialog">
+      <button type="button" aria-label="Close" onClick={onCancel} disabled={busy}
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div className="glass relative w-full max-w-md animate-rise rounded-t-2xl border border-hairline p-6 shadow-2xl shadow-black/70 sm:rounded-2xl">
+        <h2 id="clear-title" className="font-display text-xl leading-tight">Clear your whole agenda?</h2>
+        <p className="mt-1 text-[13px] text-muted">
+          Every seat and waitlist place is given up, and each seat goes to whoever has waited longest.
+          Your check-ins and ratings stay.
+        </p>
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="ghost" onClick={onCancel} disabled={busy} data-testid="clear-cancel">Cancel</Button>
+          <Button variant="primary" onClick={onConfirm} disabled={busy} data-testid="clear-confirm">
+            {busy ? 'Clearing…' : 'Clear my agenda'}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

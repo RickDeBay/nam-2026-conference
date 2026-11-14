@@ -115,8 +115,9 @@ route through them. The seed gives them no PRNG draws, so everyone else's data i
 An attendee with an **empty agenda** (no seat and no waitlist place) can clone a curator's:
 one transaction takes a seat in every session of theirs that has not ended, or a waitlist
 place where the room is full, and a summary lists seats taken, sessions waitlisted and
-sessions skipped as three separate counts. **One clone per attendee, ever** (`agenda_clones`,
-remembered even after they release everything). **Cap per curator = `ceil(non-curator
+sessions skipped as three separate counts. **One clone at a time** (`agenda_clones`,
+remembered even after they release seats one by one, and forgotten only by **Clear my agenda** on
+My Agenda, which releases everything and lets them clone again; the curator's count drops by one). **Cap per curator = `ceil(non-curator
 attendees / curators)`** (8 and 4 give 2): at the cap the curator shows *Full*, can still be
 read, and the API refuses with 409 `curator-full`. The other refusals are `not-empty` and
 `already-cloned`. (how: `context/engineering-context/seats.md`)

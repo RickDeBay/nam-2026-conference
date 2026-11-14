@@ -140,6 +140,9 @@ export const LANES = {
   // Books one session in a free slot, swaps within it, and gives everything back. Day 1 (index 1)
   // has a full session in every slot; desktop and mobile hold different attendees.
   'agenda.swap':      { desktop: { user: jonas, day: 1 },                   mobile: { user: andy, day: 1 } },
+  // Clears a whole agenda, so it needs an attendee the seed leaves empty: Wren (13), who only
+  // this lane uses. Desktop only — no second empty attendee is free for mobile to hold.
+  'agenda.clear':     { desktop: { user: 13, day: 1 } },
   'attendance.rating-toast':  { desktop: { user: marcus, day: 0, slot: '09:00', agenda: false }, mobile: { user: abraham, day: 0, slot: '09:00', agenda: false } },
 };
 

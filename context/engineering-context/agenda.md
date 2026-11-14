@@ -8,6 +8,8 @@ files:
   - src/pages/MyAgendaPage.jsx
 tests:
   - tests/agenda-swap.spec.js
+  - tests/agenda-clear.spec.js
+  - tests/api/clear.test.js
   - tests/unit/format.test.js
   - tests/api/agenda.test.js
   - tests/api/calendar.test.js
@@ -28,7 +30,10 @@ with `agenda-booked-note` (`+Nh waitlisted`) apart. Each row's `other-options`
 fetches `getSessions({ day })` on first open and lists the rest of the slot
 (`swap-option`, ended ones shown with Swap disabled); Swap calls the store's
 `swapSeat` (release, then reserve, no new endpoint) and a full target shows
-`swap-waitlist-note`. Everything underneath it is built and tested:
+`swap-waitlist-note`. `clear-agenda` (shown only while something is held) opens
+`clear-dialog` (`clear-cancel`, `clear-confirm`); confirming calls the store's `clearAgenda`
+(`DELETE /users/:id/reservations`) and the empty state then links to `/curated-agendas`.
+Everything underneath it is built and tested:
 adding a session takes a seat (seats doc), and the payloads below are served,
 with matching functions in `src/lib/api.js`.
 `server/lib/agenda.js`; routes in `server/routes/users.js` only validate and call it.
