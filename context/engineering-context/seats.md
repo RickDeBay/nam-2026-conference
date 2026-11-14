@@ -128,7 +128,7 @@ confirmed sessions not yet over, returning `{ curatorId, seats, waitlisted, skip
 session). `cloneCap()` is `ceil(non-curator users / curators)`; `curatorStandings()` adds
 `cloneCount`, `cloneCap`, `isFull` to `GET /users/curators`. Without a clock nothing is
 skipped. The store's `cloneAgenda(curatorId)` applies each state and toasts a refusal; the
-button (`clone-agenda`) shows only while `reservations.size === 0` and the curator is not full.
+button (`clone-agenda`) shows only while `reservations.size === 0` and the curator is not full; with any reservation (and not full) `clone-unavailable` explains why instead.
 
 ## Invariants
 
