@@ -604,9 +604,11 @@ const USERS = [
   // Fixtures with an agenda that is truly empty (no plan, follows or queue), so a browser test can clone into it.
   ['Priya Raman', 'priya@orbitconf.dev', 'Attendee', 'Circus Guild', 'she/her', 'Austin', 'America/Chicago', 'Standard', 'Arrived with a blank agenda.', 'Agent Design'],
   ['Tomas Berg', 'tomas@orbitconf.dev', 'Attendee', 'Circus Guild', 'he/him', 'Oslo', 'Europe/Oslo', 'Standard', 'Arrived with a blank agenda.', 'Evaluation'],
+  // The same empty agenda, but listed in the switcher (company 'ORBIT Demo Desk'), so cloning can be tried by hand.
+  ['Wren Okafor', 'wren@orbitconf.dev', 'Product Reviewer', 'ORBIT Demo Desk', 'she/her', 'Dublin', 'Europe/Dublin', 'Standard', 'Here to try the app with a blank agenda.', 'Agent Design'],
 ];
 const CURATORS = ['Tinker', 'Tailor', 'Soldier', 'Spy'];
-const EMPTY_AGENDAS = ['Priya Raman', 'Tomas Berg'];
+const EMPTY_AGENDAS = ['Priya Raman', 'Tomas Berg', 'Wren Okafor'];
 const uStmt = prep('INSERT INTO users (name,email,job_title,company,initials,accent,image_url,bio,pronouns,home_city,timezone,ticket_tier,interests,speaker_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
 const speakerIdFor = (name) => db.prepare('SELECT id FROM speakers WHERE name = ?').get(name)?.id ?? null;
 USERS.forEach((u, i) => {

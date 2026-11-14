@@ -9,6 +9,7 @@ import { Icon } from './Icon.jsx';
  * offered here, since three real people demo better than six invented ones.
  */
 const HOST_COMPANY = 'Equal Experts';
+const DEMO_COMPANY = 'ORBIT Demo Desk'; // Wren Okafor: the empty-agenda attendee for trying cloning
 
 /** The hosts' two talks, in the order they are given. */
 const TALKS = [
@@ -24,7 +25,7 @@ const TALKS = [
  */
 export function UserSwitcher() {
   const { users = [], currentUser, setCurrentUserId, reservations } = useConference();
-  const choices = users.filter((u) => u.company === HOST_COMPANY || u.id === currentUser?.id);
+  const choices = users.filter((u) => u.company === HOST_COMPANY || u.company === DEMO_COMPANY || u.id === currentUser?.id);
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -104,7 +105,7 @@ export function UserSwitcher() {
                       </div>
                       <div className="truncate text-[11px] text-muted">{u.jobTitle}</div>
                       <div className="truncate text-[11px] text-faint">
-                        {u.company} · {agendaCount} on agenda
+                        {u.company} · {agendaCount === 0 ? 'no sessions yet' : `${agendaCount} on agenda`}
                       </div>
                     </div>
                     {active && <Icon name="check" className="size-4 shrink-0 text-violet-300" />}

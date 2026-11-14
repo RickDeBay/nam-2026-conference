@@ -84,7 +84,10 @@ test.describe('Attendee switcher', () => {
     await expect(page.getByRole('option', { name: /Wren/ })).toContainText('no sessions yet');
     await page.keyboard.press('Escape');
 
-    await page.goto('/curated-agendas/7');
+    // Navigate inside the app: a fresh page load would re-apply visit()'s attendee.
+    await page.getByTestId('quick-links').getByRole('link', { name: /^Curated agendas/ }).click();
+    await page.getByRole('link', { name: /Tinker/ }).first().click();
+    await expect(page).toHaveURL(/\/curated-agendas\/7$/);
     await expect(page.getByTestId('clone-agenda')).toBeVisible();
     await shotForPR(page, 'Wren, with an empty agenda, offered Clone this agenda');
   });
