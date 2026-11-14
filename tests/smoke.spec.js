@@ -11,6 +11,7 @@ const ROUTES = [
   { path: '/', name: 'Home', heading: /ORBIT/ },
   { path: '/schedule', name: 'Schedule', heading: /The schedule/i },
   { path: '/speakers', name: 'Speakers', heading: /^Speakers$/i },
+  { path: '/curated-agendas', name: 'Curated agendas', heading: /^Curated agendas$/i },
   { path: '/my-agenda', name: 'My Agenda', heading: /agenda$/i },
   { path: '/venues', name: 'Venues', heading: /Venues & stages/i },
   { path: '/food', name: 'Food', heading: /Food & drink/i },

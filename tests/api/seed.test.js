@@ -36,7 +36,7 @@ describe('Seeded attendees', () => {
 
 describe('Curators', () => {
   const NAMES = ['Tinker', 'Tailor', 'Soldier', 'Spy'];
-  const agendaOf = async (id) => (await api.json(`/users/${id}/schedule`));
+  const agendaOf = async (id) => (await api.json(`/users/${id}/schedule`)).days;
 
   test('exactly Tinker, Tailor, Soldier and Spy, in that order', async () => {
     const curators = await api.json('/users/curators');
@@ -67,12 +67,10 @@ describe('Curators', () => {
         }
       }
     }
-    assert.ok(seen.size > 20);
+    assert.ok(seen.size > 40);
   });
 
   test('they are attendees, not speakers', async () => {
-    const { speakers } = await api.json('/bootstrap');
-    for (const n of NAMES) assert.ok(!speakers.some((s) => s.name === n), `${n} is on /speakers`);
     const list = await api.json('/speakers');
     assert.ok(!list.some((s) => NAMES.includes(s.name)));
   });

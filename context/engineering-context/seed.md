@@ -11,6 +11,7 @@ tests:
   - tests/api/seed.test.js
   - tests/smoke.spec.js
   - tests/seats.spec.js
+  - tests/curated-agendas.spec.js
 related: [architecture, testing, seats, attendance, schedule, speakers, venues]
 ---
 
@@ -57,7 +58,7 @@ data at the end of the script, or draw from a separate generator.
    that overwrites the session's title, subtitle, abstract, takeaways, prerequisites and
    all its tags, so the hosts' sessions are their real subjects; format, room, track and
    seats stay as generated. Speakers left with nothing are then paired onto solo sessions.
-7. `USERS` — six attendees (below). Ticket tier `Speaker` sets `speaker_id` by name and
+7. `USERS` — six attendees plus four curators (below). Ticket tier `Speaker` sets `speaker_id` by name and
    reuses the speaker portrait; the others get `attendee-00N.jpg`.
 8. Plans. Jonas's cross-town pairs are booked first (Day 1 Aurora 10:15 → Foundry 11:30;
    Day 4 Aurora 09:00 → Foundry 10:15). Then `PLAN_SHAPE[i]` gives each attendee days
@@ -67,12 +68,16 @@ data at the end of the script, or draw from a separate generator.
    `seats_taken = capacity`; eight more sit 1–4 below. `promotionFixture` is the first full
    session Jonas can hold a confirmed seat on with nobody else confirmed and no clash for
    anyone; he is given that seat, then 1–3 attendees queue on it and on five other full ones.
-10. Follows: 2–5 per attendee, mostly speakers they booked plus headliners.
-11. Day 1 morning: every confirmed seat on `DAYS[0]` ending by `MORNING_ENDS = '12:15'`
+10. Curated agendas: after the queues, each curator books the keynote of every day and one
+    session per slot, rotating by curator index and slot (no PRNG draw), from sessions that
+    are not full, not a Social and have more than four seats left; `claimed` guarantees no
+    session is on two agendas, and `seatClash` stops overlaps.
+11. Follows: 2–5 per attendee, mostly speakers they booked plus headliners.
+12. Day 1 morning: every confirmed seat on `DAYS[0]` ending by `MORNING_ENDS = '12:15'`
     gets a check-in at its start time; ~70% of those also get a rating (2–5 stars, optional
     comment). Then `sessions.avg_rating/rating_count` and `speakers.avg_rating` are
     recomputed from `ratings`. Nothing outside Day 1 morning is checked in or rated.
-12. Vendors, sponsors (website `https://<slug>.example.com` — stored, never rendered), and
+13. Vendors, sponsors (website `https://<slug>.example.com` — stored, never rendered), and
     `ANN` announcements, whose dates and weekdays come from `DAYS` via `weekdayOf`.
 
 **Dates.** `START_DATE = ORBIT_START_DATE ?? isoDay(new Date())` — local calendar date, not
@@ -90,10 +95,18 @@ pins it. Only dates change between machines; the PRNG output does not.
 | 5 | Marcus Whitfield | Standard | 2 days, the smallest plan |
 | 6 | Abraham Marín Pérez | Speaker | `speaker_id` 2, presents 2 sessions, 3 days |
 
+**Curators** (ids 7–10, `users.is_curator = 1`, `GET /api/users/curators`): Tinker, Tailor,
+Soldier and Spy. Attendees, not speakers: no `speaker_id`, company `Circus Guild` (so the
+attendee switcher hides them). A curated agenda is *not a track* — tracks classify sessions,
+a curator's agenda is one reader's route through them. They are held out of `attendees`, so
+the plans, queues and follows draws are unchanged.
+
 ## Invariants
 
 - Never `Math.random()` or `Date.now()`-dependent values other than `START_DATE`.
 - `sessions.recording_url/slides_url/repo_url` are always null; ratings are always 0 at insert.
+- No session except a keynote is on two curators' agendas; each curator holds a confirmed
+  seat every day (`tests/api/seed.test.js`, `Curators`).
 - Seeded seats obey the API's rules: one seat per slot per attendee, nobody queues while
   seats are free, nobody queues in a slot they hold a seat in.
 - The grid needs each day's five rooms to run all day — keep `todaysRooms` fixed per day.

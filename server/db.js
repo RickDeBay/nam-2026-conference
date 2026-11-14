@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS users (
   timezone    TEXT NOT NULL DEFAULT 'America/Los_Angeles',
   ticket_tier TEXT NOT NULL DEFAULT 'Standard',
   interests   TEXT NOT NULL DEFAULT '',
+  -- A seeded reader's guide (Tinker, Tailor, Soldier, Spy): an attendee with a full agenda, never a speaker.
+  is_curator  INTEGER NOT NULL DEFAULT 0,
   -- Attendees who are also presenting link to their speakers row.
   speaker_id  INTEGER REFERENCES speakers(id)
 );
