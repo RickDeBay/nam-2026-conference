@@ -190,6 +190,37 @@ export function ConferenceProvider({ children }) {
     setConflict(null);
   }, [conflict, currentUserId, applySeatState, toast, clock]);
 
+  /**
+   * Give up `fromId` and take `toSession` in the same slot. Composed from the
+   * two calls the conflict dialog uses, so no new endpoint or rule. Returns the
+   * new seat state, or undefined when refused.
+   */
+  const swapSeat = useCallback(async (fromId, toSession) => {
+    if (hasEnded(toSession, clock)) {
+      toast({ message: 'That session has already finished', icon: 'clock' });
+      return undefined;
+    }
+    try {
+      const released = await api.releaseSeat(currentUserId, fromId);
+      applySeatState(released);
+      const state = await api.reserveSeat(currentUserId, toSession.id, clock);
+      applySeatState(state);
+      toast(state.status === 'waitlisted'
+        ? {
+          message: `Swapped — “${toSession.title}” is full, so you are ${state.waitlistPosition ? `#${state.waitlistPosition} ` : ''}on the waitlist`,
+          icon: 'clock',
+        }
+        : {
+          message: released.promoted ? `Swapped to “${toSession.title}” — your old seat went to someone on the waitlist` : `Swapped to “${toSession.title}”`,
+          icon: 'check',
+        });
+      return state;
+    } catch (err) {
+      toast({ message: `Could not swap: ${err.message}`, icon: 'alert' });
+      return undefined;
+    }
+  }, [currentUserId, applySeatState, toast, clock]);
+
   const value = useMemo(() => {
     const users = data?.users ?? [];
     return {
@@ -211,6 +242,7 @@ export function ConferenceProvider({ children }) {
       releaseSeat,
       toggleSeat,
       cloneAgenda,
+      swapSeat,
       onAgenda: (id) => reservations.has(id),
       conflict,
       resolveConflict,
@@ -219,7 +251,7 @@ export function ConferenceProvider({ children }) {
       roomById: Object.fromEntries((data?.rooms ?? []).map((r) => [r.id, r])),
     };
   }, [data, error, clock, currentUserId, followingIds, toggleFollow,
-      reservations, seatCounts, reserveSeat, releaseSeat, toggleSeat, cloneAgenda,
+      reservations, seatCounts, reserveSeat, releaseSeat, toggleSeat, cloneAgenda, swapSeat,
       conflict, resolveConflict]);
 
   return <ConferenceContext.Provider value={value}>{children}</ConferenceContext.Provider>;

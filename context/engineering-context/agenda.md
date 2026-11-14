@@ -1,13 +1,14 @@
 ---
 area: agenda
-summary: The attendee's own conference — the My Agenda placeholder page, and the endpoints a team builds an agenda on (/users/:id/schedule and /today, the speaker's own sessions, the .ics exports), none of which has a UI yet.
+summary: The attendee's own conference — the My Agenda page (seats and waitlist places by day and slot, swap within a slot), and the endpoints a team builds on (/users/:id/schedule and /today, the speaker's own sessions, the .ics exports); only /schedule feeds a page so far.
 read_when: touching My Agenda, an attendee's day or schedule, suggestions, clashes or booked-hours totals, a speaker's own sessions, or calendar export
 files:
   - server/lib/agenda.js
   - server/lib/ical.js
   - src/pages/MyAgendaPage.jsx
 tests:
-  - tests/home.spec.js
+  - tests/agenda-swap.spec.js
+  - tests/unit/format.test.js
   - tests/api/agenda.test.js
   - tests/api/calendar.test.js
   - tests/unit/ical.test.js
@@ -16,12 +17,20 @@ related: [seats, attendance, clock, venues, schedule, speakers, ui]
 
 # Agenda
 
-**My Agenda is a placeholder.** `/my-agenda` (`MyAgendaPage`, still in the nav,
-`/my-plan` redirects there) renders a `SectionHeader` and a "Coming soon" panel
-(`agenda-coming-soon`) with a `Browse the schedule` button — nothing else. Workshop
-teams design the page from scratch. Everything underneath it is built and tested:
+**My Agenda** (`/my-agenda`, `MyAgendaPage`; `/my-plan` redirects) lists what the
+attendee holds, seats and waitlist places alike, grouped by day then start time
+(`agenda-day` > `agenda-slot` > `agenda-row`, with `data-status` confirmed or
+waitlisted). It fetches `getSchedule` once for the day structure and re-filters
+through `reservationFor` on every render (`format.js:agendaDays`), so a swap or a
+removal shows at once; sessions swapped into later are kept in page state, as
+the payload does not have them. `agenda-booked-hours` counts confirmed seats only,
+with `agenda-booked-note` (`+Nh waitlisted`) apart. Each row's `other-options`
+fetches `getSessions({ day })` on first open and lists the rest of the slot
+(`swap-option`, ended ones shown with Swap disabled); Swap calls the store's
+`swapSeat` (release, then reserve, no new endpoint) and a full target shows
+`swap-waitlist-note`. Everything underneath it is built and tested:
 adding a session takes a seat (seats doc), and the payloads below are served,
-with matching functions in `src/lib/api.js`. What a day is made of is decided in
+with matching functions in `src/lib/api.js`.
 `server/lib/agenda.js`; routes in `server/routes/users.js` only validate and call it.
 
 ## How it works
@@ -121,8 +130,7 @@ local `DTSTART`/`DTEND`, `UID:orbit-session-<id>@orbitconf.dev`, LOCATION
 
 ## Where to change…
 
-- The My Agenda page: `MyAgendaPage.jsx`; replace `tests/home.spec.js`'s
-  "My Agenda is a blank canvas" test when the placeholder goes.
+- The My Agenda page: `MyAgendaPage.jsx`, grouping and totals in `format.js:agendaDays` (unit-tested), proved by `tests/agenda-swap.spec.js`.
 - A new field on the day payload → `agenda.js:todayFor`; prove it in `tests/api/` with `startApi()`.
 - Suggestion ranking → `agenda.js:suggestionsFor` / `myTopics` / `openInSlot`.
 - Clash or total rules → `agenda.js:scheduleFor`/`clashesIn`, and any client

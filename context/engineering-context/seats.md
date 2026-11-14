@@ -89,6 +89,9 @@ the body; `api()` throws on non-2xx but keeps `err.status` and `err.payload`.
   every caller passes the session object it already rendered;
   `reservationFor(id)` → status or `null`; `onAgenda(id)` → boolean;
   `seatsFor(id)` → the live counts or `null`.
+- `swapSeat(fromId, toSession)` — My Agenda's swap: refuses an ended target before
+  touching anything, then releases `fromId` and reserves the target (clock passed),
+  toasting a promotion, a waitlist place or a plain swap; returns the new state.
 - `resolveConflict(swap)` — on swap, releases `conflict.conflictsWith.id`, then
   reserves `conflict.wanted.id` (may land on the waitlist, toasted as such);
   always clears `conflict`.
