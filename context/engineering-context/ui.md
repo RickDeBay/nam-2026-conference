@@ -21,6 +21,8 @@ files:
   - src/components/UserSwitcher.jsx
   - src/components/RouteChange.jsx
   - src/pages/HomePage.jsx
+  - src/pages/CuratedAgendasPage.jsx
+  - src/pages/CuratorAgendaPage.jsx
   - src/pages/NotFoundPage.jsx
   - src/pages/PresentationPage.jsx
   - src/pages/ProductPresentationPage.jsx
@@ -127,7 +129,7 @@ duration })` counts once visible. `HeroMedia` (home hero only) probes
 `conflict` / `resolveConflict` from the store), a skip link to `#main`, the
 sticky `glass` header, `<main id="main">`, and the footer.
 
-- `NAV` array (`to, label, icon, end`) drives both the desktop nav (`lg+`,
+- `NAV` array (`to, label, icon, end`; includes Curated agendas, `/curated-agendas`) drives both the desktop nav (`lg+`,
   `aria-label="Main"`) and the mobile menu (`aria-label="Mobile"`, toggled by
   the "Open menu"/"Close menu" button, closes on navigation, locks body scroll).
   `/my-agenda` shows `reservations.size` as a badge.
@@ -152,11 +154,15 @@ sticky `glass` header, `<main id="main">`, and the footer.
   `/speakers/<currentUser.speakerId>`, which marks itself "This is you"
   (speakers doc). `tests/switcher.spec.js` covers the switcher and that link.
 
+**Curated agendas** (`/curated-agendas`, `CuratedAgendasPage`) lists the four curators
+(`curator-card`, from `getCurators`); `/curated-agendas/:id` (`CuratorAgendaPage`) shows one
+curator's confirmed seats from `getSchedule` as `curator-day` > `curator-slot`.
+
 **`HomePage`** (`/`) — static: nothing on it is about the signed-in attendee or
 what is live. It stacks `HeroBar` (`hero`: name, `conference.dates · city`, a
 `Day n · time` chip from `clock`, and `Browse today` → `/schedule?day=<clock.day>`
 plus `Speakers` buttons) → `QuickLinks` (`quick-links`, a `nav` of the `LINKS`
-array: Schedule, Speakers, Venues, Food & drink, Expo) → `LatestAnnouncement`
+array: Schedule, Speakers, Curated agendas, Venues, Food & drink, Expo) → `LatestAnnouncement`
 (`announcements`: the single newest posted one, pinned first, filtered by
 `postedAt <= clock`, so nothing appears before it was written) →
 `SponsorMarquee` (venues doc). Sections that return `null` would leave their

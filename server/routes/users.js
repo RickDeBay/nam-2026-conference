@@ -9,6 +9,7 @@ import { agendaCalendar, baseUrlFor } from '../lib/ical.js';
 export const usersRouter = Router();
 
 const allUsers = db.prepare('SELECT * FROM users ORDER BY id');
+const curatorRows = db.prepare('SELECT * FROM users WHERE is_curator = 1 ORDER BY id');
 const getUser = db.prepare('SELECT * FROM users WHERE id = ?');
 const userExists = db.prepare('SELECT 1 FROM users WHERE id = ?');
 const speakerExists = db.prepare('SELECT 1 FROM speakers WHERE id = ?');
@@ -31,6 +32,11 @@ const speakingSessions = (speakerId) =>
 
 usersRouter.get('/', (req, res) => {
   res.json(allUsers.all().map((u) => toUser(u)));
+});
+
+// The four curators, in id order. Registered before /:id, which would read "curators" as an id.
+usersRouter.get('/curators', (req, res) => {
+  res.json(curatorRows.all().map((u) => toUser(u)));
 });
 
 usersRouter.get('/:id', (req, res) => {

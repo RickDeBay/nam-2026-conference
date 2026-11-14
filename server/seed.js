@@ -596,7 +596,13 @@ const USERS = [
   ['Sofia Almeida', 'sofia@orbitconf.dev', 'Head of Developer Experience', 'Cobalt Studio', 'she/her', 'Lisbon', 'Europe/Lisbon', 'VIP', 'Obsessed with the inner loop. Will demo her terminal setup unprompted.', 'Code Generation,Tool Calling,Agent Design,Observability'],
   ['Marcus Whitfield', 'marcus@orbitconf.dev', 'VP of Engineering', 'Arcadia Bank', 'he/him', 'Chicago', 'America/Chicago', 'Standard', 'Getting a regulated bank to ship AI without ending up in the news. Mostly succeeding.', 'Governance,Compliance,Red Teaming,Guardrails'],
   ['Abraham Marín Pérez', 'abraham@orbitconf.dev', 'AI Software Engineer', 'Equal Experts', 'he/him', 'Los Angeles', 'America/Los_Angeles', 'Speaker', 'Bringing AI into the SDLC without losing safety or quality. Speaking twice, then back to the physics homework.', 'Code Generation,Agent Design,Context Engineering,Cost Optimization'],
+  // Curators: attendees who hold a ready-made agenda for others to browse. Not speakers, not Equal Experts.
+  ['Tinker', 'tinker@orbitconf.dev', 'Curator', 'Circus Guild', 'they/them', 'London', 'Europe/London', 'Standard', 'Takes things apart to see how they work. Her agenda is the hands-on one.', 'Agent Design,Tool Calling,Code Generation,Observability'],
+  ['Tailor', 'tailor@orbitconf.dev', 'Curator', 'Circus Guild', 'they/them', 'London', 'Europe/London', 'Standard', 'Cuts a day to fit. His agenda favours the talks that change how a team works.', 'Context Engineering,Governance,Cost Optimization,Evaluation'],
+  ['Soldier', 'soldier@orbitconf.dev', 'Curator', 'Circus Guild', 'they/them', 'London', 'Europe/London', 'Standard', 'Marches through the hard problems. Their agenda is security, reliability and scale.', 'Red Teaming,Guardrails,Latency,Compliance'],
+  ['Spy', 'spy@orbitconf.dev', 'Curator', 'Circus Guild', 'they/them', 'London', 'Europe/London', 'Standard', 'Listens at the edges. Their agenda is the research and the surprises.', 'Distillation,Computer Vision,Quantization,Evaluation'],
 ];
+const CURATORS = ['Tinker', 'Tailor', 'Soldier', 'Spy'];
 const uStmt = prep('INSERT INTO users (name,email,job_title,company,initials,accent,image_url,bio,pronouns,home_city,timezone,ticket_tier,interests,speaker_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
 const speakerIdFor = (name) => db.prepare('SELECT id FROM speakers WHERE name = ?').get(name)?.id ?? null;
 USERS.forEach((u, i) => {
@@ -611,7 +617,10 @@ USERS.forEach((u, i) => {
   uStmt.run(u[0], u[1], u[2], u[3], initialsOf(u[0]), ACCENTS[i * 2 % ACCENTS.length],
     portrait, u[8], u[4], u[5], u[6], u[7], u[9], speakerId);
 });
+db.prepare(`UPDATE users SET is_curator = 1 WHERE name IN (${CURATORS.map(() => '?').join(',')})`).run(...CURATORS);
 const users = db.prepare('SELECT * FROM users').all();
+// Curators are seeded last and apart, so none of the attendee draws below moves.
+const attendees = users.filter((u) => !u.is_curator);
 
 /**
  * Attendee plans — a realistic day, not a full timetable.
@@ -681,7 +690,7 @@ const takenSlots = db.prepare(`
   JOIN sessions s ON s.id = r.session_id
   WHERE r.user_id = ? AND s.day = ?`);
 
-users.forEach((u, i) => {
+attendees.forEach((u, i) => {
   const shape = PLAN_SHAPE[i] ?? { days: 3, perDay: [2, 3], keynote: 0.7 };
   DAYS.slice(0, shape.days).forEach((day) => {
     if (chance(shape.keynote)) {
@@ -749,17 +758,47 @@ const otherHolder = prep("SELECT 1 FROM reservations WHERE session_id = ? AND us
 const promotionFixture = fullSessions.find((sess) =>
   statusOf.get(users[0].id, sess.id)?.status !== 'waitlisted'
   && !seatClash.get(sess.id, users[0].id) && !otherHolder.get(sess.id, users[0].id)
-  && users.slice(1).every((u) => !seatClash.get(sess.id, u.id)));
+  && attendees.slice(1).every((u) => !seatClash.get(sess.id, u.id)));
 if (promotionFixture) resStmt.run(users[0].id, promotionFixture.id, 'confirmed', savedAt());
 const queued = [...new Set([...fullSessions.slice(0, 5), promotionFixture].filter(Boolean))];
 queued.forEach((sess) => {
-  const waiting = users.filter((u) => !(sess === promotionFixture && u.id === users[0].id) && !seatClash.get(sess.id, u.id));
+  const waiting = attendees.filter((u) => !(sess === promotionFixture && u.id === users[0].id) && !seatClash.get(sess.id, u.id));
   pickN(waiting, int(1, 3)).forEach((u, n) => {
     waitStmt.run(u.id, sess.id, `${addDays(DAYS[0], -2)}T${String(9 + n).padStart(2, '0')}:${String(int(10, 59))}:00Z`);
   });
 });
 
 console.log(`  · ${fullSessions.length} sessions seeded full, with queues on ${queued.length} of them`);
+
+/*
+ * Curated agendas. Each curator holds a confirmed seat in the keynote and in
+ * one session per slot, and no session but a keynote is on two agendas — so
+ * four curators are four different ways through the same four days. No
+ * randomness: slots rotate by curator index, so no PRNG draw is spent here.
+ * Only sessions with plenty of seats left qualify, so nobody is waitlisted.
+ */
+const curators = users.filter((u) => u.is_curator);
+const claimed = new Set();
+const roomy = prep(`SELECT id FROM sessions WHERE day = ? AND starts_at = ? AND is_keynote = 0
+  AND format != 'Social' AND capacity - seats_taken > 4 ORDER BY id`);
+DAYS.forEach((day) => {
+  const k = keynoteOn.get(day);
+  curators.forEach((u) => { if (k) bookSeat(u.id, k.id, `${addDays(DAYS[0], -5)}T10:00:00Z`); });
+  slotsByDay[day].forEach((slot, slotIndex) => {
+    const open = roomy.all(day, slot).map((r) => r.id).filter((id) => !fullSessions.some((f) => f.id === id));
+    // Rotate who goes first, so a slot short of sessions leaves a different curator out each time.
+    curators.map((u, k2) => [u, k2]).sort(([, a], [, b]) => ((a + slotIndex + DAYS.indexOf(day)) % 4) - ((b + slotIndex + DAYS.indexOf(day)) % 4)).forEach(([u, k2]) => {
+      for (let n = 0; n < open.length; n++) {
+        const id = open[(k2 + slotIndex + n) % open.length];
+        if (claimed.has(id) || seatClash.get(id, u.id)) continue;
+        claimed.add(id);
+        bookSeat(u.id, id, `${addDays(DAYS[0], -5)}T10:00:00Z`);
+        break;
+      }
+    });
+  });
+});
+console.log(`  · ${curators.length} curators hold ${claimed.size} sessions between them`);
 
 /*
  * Follows. You follow a handful of people, not a fifth of the roster — and
@@ -772,7 +811,7 @@ const speakersIBooked = db.prepare(`
   JOIN session_speakers ss ON ss.session_id = r.session_id
   WHERE r.user_id = ?`);
 
-users.forEach((u) => {
+attendees.forEach((u) => {
   const booked = speakersIBooked.all(u.id);
   const headliners = speakers.filter((sp) => sp.featured);
   const wanted = int(2, 5);
