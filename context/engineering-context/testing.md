@@ -44,6 +44,8 @@ open `/schedule`; `scripts/show.mjs`, `pick()` decides which). Two different thi
 (`scripts/lane.mjs`, one per worktree) and a *data lane* (`LANES` in `tests/helpers.js`,
 one per Playwright test per project).
 
+`clone.ui` is the one lane that cannot be rerun: Priya (desktop) and Tomas (mobile) each own their whole agenda and may clone once, ever, so run `tests/curated-clone.spec.js` again only after a reseed.
+
 ## How it works
 
 **Unit** (`tests/unit/*.test.js`, `node --test`). A test importing anything under

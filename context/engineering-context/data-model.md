@@ -30,8 +30,9 @@ Approximate counts from a fresh seed. The tables attendees write to drift as you
 | `sessions` | ~140 | 4 days × 7 slots × 5 rooms (a few slots left empty), plus a keynote and a social each day |
 | `session_speakers` | ~195 | Many-to-many, with a `role` (Speaker / Moderator / Host) |
 | `session_tags` | ~980 | Many-to-many |
-| `users` | 10 | Attendees (six, plus four curators flagged `is_curator`). No passwords — there is no auth |
+| `users` | 12 | Attendees (six, plus four curators flagged `is_curator`, plus two empty-agenda fixtures). No passwords — there is no auth |
 | `reservations` | ~60 | An attendee's agenda. Holds a real seat; `status` is `confirmed` or `waitlisted` |
+| `agenda_clones` | 0, grows | One row per attendee who cloned a curator's agenda (`user_id` primary key, `curator_id`); the one-clone-ever rule and the per-curator cap read it |
 | `speaker_follows` | ~20 | Follow button on a speaker's profile; only the speaker pages read it |
 | `ratings` | ~10 | Only submittable by someone who checked in, once the session is over |
 | `check_ins` | ~10, grows | Proof of attendance; gates rating. Seeded only for Day 1's morning |

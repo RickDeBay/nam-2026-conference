@@ -4,12 +4,15 @@ summary: Adding a session to your agenda — taking a seat or a waitlist place, 
 read_when: touching reservations, seat counts, the waitlist, promotion, the overlap or ended guard, ConflictDialog, SeatPanel, or any /api/users route
 files:
   - server/lib/seats.js
+  - server/lib/clone.js
   - server/routes/users.js
   - src/components/SeatPanel.jsx
   - src/components/ConflictDialog.jsx
 tests:
   - tests/api/seats.test.js
   - tests/api/overlap.test.js
+  - tests/api/clone.test.js
+  - tests/curated-clone.spec.js
   - tests/seats.spec.js
 related: [attendance, agenda, clock, architecture, testing]
 ---
@@ -113,6 +116,19 @@ Testids: `seat-panel`, `seat-count`, `seats-left`, `reservation-confirmed`,
 `reservation-waitlisted`, `reserve-seat`, `session-ended-seat`, `session-ended`,
 `release-seat`, `conflict-dialog`,
 `conflict-keep`, `conflict-swap`.
+
+## Cloning a curated agenda
+
+`POST /api/users/:id/clone/:curatorId` (`{ day, time }`) runs `cloneAgenda` in
+`server/lib/clone.js`: 404 for an unknown attendee or a target that is not a curator, 409
+`{ rejected }` of `not-empty` (any reservation row), `already-cloned` (a row in
+`agenda_clones`) or `curator-full`; otherwise `reserveSeat` for each of the curator's
+confirmed sessions not yet over, returning `{ curatorId, seats, waitlisted, skipped, states }`
+(`seats`/`waitlisted`/`skipped` are `[{ id, title }]`, `states` the `seatState` of each booked
+session). `cloneCap()` is `ceil(non-curator users / curators)`; `curatorStandings()` adds
+`cloneCount`, `cloneCap`, `isFull` to `GET /users/curators`. Without a clock nothing is
+skipped. The store's `cloneAgenda(curatorId)` applies each state and toasts a refusal; the
+button (`clone-agenda`) shows only while `reservations.size === 0` and the curator is not full.
 
 ## Invariants
 

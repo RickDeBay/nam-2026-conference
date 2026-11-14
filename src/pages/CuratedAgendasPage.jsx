@@ -24,6 +24,10 @@ export function CuratedAgendasPage() {
                   <Avatar name={c.name} initials={c.initials} accent={c.accent} imageUrl={c.imageUrl} size="lg" />
                   <span className="min-w-0">
                     <span className="block font-display text-xl">{c.name}’s agenda</span>
+                    {c.isFull && (
+                      <span data-testid="curator-full"
+                        className="mt-1 inline-block rounded-full bg-white/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted">Full</span>
+                    )}
                     <span className="mt-1 block text-sm text-muted">{c.bio}</span>
                   </span>
                 </Link>
