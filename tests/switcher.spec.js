@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { visit, momentOn, laneFor, bookableFor, ATTENDEES } from './helpers.js';
+import { visit, shotForPR, momentOn, laneFor, bookableFor, ATTENDEES } from './helpers.js';
 
 test.describe('Attendee switcher', () => {
   test('the switcher counts what is on an agenda, not what was "saved"', async ({ page }) => {
@@ -58,18 +58,38 @@ test.describe('Attendee switcher', () => {
     await expect(page.getByTestId('own-speaker-profile')).toBeVisible();
   });
 
-  test('the switcher offers only the three hosts, plus whoever is already selected', async ({ page }) => {
+  test('the switcher offers the three hosts and the empty-agenda demo attendee, plus whoever is already selected', async ({ page }) => {
     await visit(page, '/', { as: ATTENDEES.jonas });
     await page.getByRole('button', { name: /Switch attendee/ }).click();
-    await expect(page.getByRole('option')).toHaveText([/Jonas Claesson/, /Andy Vays/, /Abraham Marín Pérez/]);
+    await expect(page.getByRole('option')).toHaveText([/Jonas Claesson/, /Andy Vays/, /Abraham Marín Pérez/, /Wren Okafor/]);
     await page.keyboard.press('Escape');
 
     // Another seeded attendee, selected through localStorage as the tests do,
     // stays listed and selected so it can be switched away from.
     await visit(page, '/', { as: ATTENDEES.kenji });
     await page.getByRole('button', { name: /Switch attendee/ }).click();
-    await expect(page.getByRole('option')).toHaveText([/Jonas Claesson/, /Andy Vays/, /Kenji Nakamura/, /Abraham Marín Pérez/]);
+    await expect(page.getByRole('option')).toHaveText([/Jonas Claesson/, /Andy Vays/, /Kenji Nakamura/, /Abraham Marín Pérez/, /Wren Okafor/]);
     await expect(page.getByRole('option', { selected: true })).toContainText('Kenji Nakamura');
+  });
+
+  test('Wren, listed with an empty agenda, can clone a curated agenda with no console step', async ({ page }) => {
+    await visit(page, '/', { as: ATTENDEES.jonas });
+    await page.getByRole('button', { name: /Switch attendee/ }).click();
+    await expect(page.getByRole('option', { name: /Wren/ })).toContainText('no sessions yet');
+    await expect(page.getByRole('option', { name: /Priya|Tomas/ })).toHaveCount(0);
+    await page.getByRole('option', { name: /Wren/ }).click();
+    await expect(page.getByRole('button', { name: /Viewing as Wren Okafor/ })).toBeVisible();
+
+    await page.getByRole('button', { name: /Switch attendee/ }).click();
+    await expect(page.getByRole('option', { name: /Wren/ })).toContainText('no sessions yet');
+    await page.keyboard.press('Escape');
+
+    // Navigate inside the app: a fresh page load would re-apply visit()'s attendee.
+    await page.getByTestId('quick-links').getByRole('link', { name: /^Curated agendas/ }).click();
+    await page.getByRole('link', { name: /Tinker/ }).first().click();
+    await expect(page).toHaveURL(/\/curated-agendas\/7$/);
+    await expect(page.getByTestId('clone-agenda')).toBeVisible();
+    await shotForPR(page, 'Wren, with an empty agenda, offered Clone this agenda');
   });
 
 });

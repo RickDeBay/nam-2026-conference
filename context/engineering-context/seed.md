@@ -58,7 +58,7 @@ data at the end of the script, or draw from a separate generator.
    that overwrites the session's title, subtitle, abstract, takeaways, prerequisites and
    all its tags, so the hosts' sessions are their real subjects; format, room, track and
    seats stay as generated. Speakers left with nothing are then paired onto solo sessions.
-7. `USERS` — six attendees plus four curators (below). Ticket tier `Speaker` sets `speaker_id` by name and
+7. `USERS` — six attendees, four curators and three empty-agenda attendees (below). Ticket tier `Speaker` sets `speaker_id` by name and
    reuses the speaker portrait; the others get `attendee-00N.jpg`.
 8. Plans. Jonas's cross-town pairs are booked first (Day 1 Aurora 10:15 → Foundry 11:30;
    Day 4 Aurora 09:00 → Foundry 10:15). Then `PLAN_SHAPE[i]` gives each attendee days
@@ -101,10 +101,12 @@ attendee switcher hides them). A curated agenda is *not a track* — tracks clas
 a curator's agenda is one reader's route through them. They are held out of `attendees`, so
 the plans, queues and follows draws are unchanged.
 
-**Empty-agenda fixtures** (ids 11 Priya Raman, 12 Tomas Berg, company `Circus Guild`, so also
-hidden from the switcher): no plan, follows or queue (held out of `attendees` by name), so a
-browser test can clone a curator's agenda into a truly empty one. They count as attendees
-for the clone cap (8 non-curators).
+**Empty-agenda attendees** (ids 11 Priya Raman, 12 Tomas Berg, company `Circus Guild`, hidden
+from the switcher; 13 Wren Okafor, company `ORBIT Demo Desk`, listed in it): no plan, follows or
+queue (held out of `attendees` by name), so a browser test can clone a curator's agenda into a
+truly empty one. Wren is the same fixture made reachable: a reviewer picks her in the switcher
+and sees **Clone this agenda** with no console step; tests leave her empty. They count as
+attendees for the clone cap (9 non-curators, so `ceil(9 / 4) = 3`).
 
 ## Invariants
 

@@ -138,9 +138,10 @@ sticky `glass` header, `<main id="main">`, and the footer.
   bootstrap and a plain `<a href="/api/bootstrap">`.
 - `UserSwitcher` sits in the header once `ready`: a `listbox` of the
   `useConference().users` whose company is `HOST_COMPANY` (Equal Experts: Jonas,
-  Andy, Abraham), plus the selected attendee if it is someone else (tests pick
+  Andy, Abraham) or `DEMO_COMPANY` (ORBIT Demo Desk: Wren Okafor, the empty-agenda attendee for
+  trying cloning, whose row reads "no sessions yet"), plus the selected attendee if it is someone else (tests pick
   Kenji, Sofia or Marcus through localStorage, and they must be able to switch
-  back). `/bootstrap` still returns all six. Calls `setCurrentUserId`; closes on outside pointer
+  back). `/bootstrap` still returns every user. Calls `setCurrentUserId`; closes on outside pointer
   or Escape. Under the list, "Workshop talks" (`data-testid="talk-links"`, the
   `TALKS` array) links to both decks, so they are one click from every page
   without taking header space. Each row shows "N on agenda"; every row but the signed-in

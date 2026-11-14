@@ -32,6 +32,17 @@ describe('Seeded attendees', () => {
     const strays = users.flatMap((u) => u.interests.filter((i) => !topics.has(i)).map((i) => `${u.name}: ${i}`));
     assert.deepEqual(strays, []);
   });
+
+  test('user 13 is Wren Okafor, with a truly empty agenda, and the clone cap counts her', async () => {
+    const wren = await api.json('/users/13');
+    assert.equal(wren.name, 'Wren Okafor');
+    assert.equal(wren.company, 'ORBIT Demo Desk');
+    assert.equal(wren.speakerId, null);
+    assert.equal(wren.reservations.length, 0);
+    assert.equal((await api.json('/users/13/schedule')).days.reduce((n, d) => n + d.items.length, 0), 0);
+    const curators = await api.json('/users/curators');
+    assert.ok(curators.every((c) => c.cloneCap === 3), 'nine non-curators and four curators make ceil(9 / 4) = 3');
+  });
 });
 
 describe('Curators', () => {

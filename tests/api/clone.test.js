@@ -6,8 +6,8 @@ import { clearAgenda, days, startApi } from './harness.js';
 /**
  * Cloning a curated agenda, at the API. Attendees 11 and 12 (Priya, Tomas) are
  * seeded with an empty agenda; anyone else is cleared first. Curators are
- * 7 Tinker, 8 Tailor, 9 Soldier, 10 Spy; 8 non-curators and 4 curators make the
- * cap ceil(8 / 4) = 2.
+ * 7 Tinker, 8 Tailor, 9 Soldier, 10 Spy; 9 non-curators (Wren, 13, among them) and
+ * 4 curators make the cap ceil(9 / 4) = 3.
  */
 const [TINKER, TAILOR, , SPY] = [7, 8, 9, 10];
 
@@ -84,18 +84,20 @@ describe('Cloning a curated agenda', () => {
     assert.equal((await clone(12, SPY)).status, 200);
     await clearAgenda(api, 3);
     assert.equal((await clone(3, SPY)).status, 200);
+    await clearAgenda(api, 5);
+    assert.equal((await clone(5, SPY)).status, 200);
 
     const spy = (await api.json('/users/curators')).find((c) => c.id === SPY);
-    assert.deepEqual([spy.cloneCount, spy.cloneCap, spy.isFull], [2, 2, true]);
+    assert.deepEqual([spy.cloneCount, spy.cloneCap, spy.isFull], [3, 3, true]);
     const tinker = (await api.json('/users/curators')).find((c) => c.id === TINKER);
     assert.deepEqual([tinker.cloneCount, tinker.isFull], [1, false]);
 
-    await clearAgenda(api, 5);
-    const refused = await clone(5, SPY);
+    await clearAgenda(api, 6);
+    const refused = await clone(6, SPY);
     assert.equal(refused.status, 409);
     assert.equal(refused.body.rejected, 'curator-full');
     assert.equal((await api.get(`/users/${SPY}/schedule`)).status, 200);
-    assert.equal((await api.json(`/users/5`)).reservations.length, 0);
+    assert.equal((await api.json(`/users/6`)).reservations.length, 0);
   });
 
   test('unknown attendee or a target that is not a curator is a 404', async () => {

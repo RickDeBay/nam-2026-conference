@@ -48,3 +48,13 @@ would rather borrow a day than build one.
 - **Seeded as:** four curators who are attendees, never speakers. Their agendas share
   no session except the keynotes. A curated agenda is not a track, and the app never
   calls it one.
+
+## The newcomer with an empty agenda
+
+Arrives with nothing booked and wants a starting point rather than a blank page; the
+person who makes cloning a curated agenda worth having.
+
+- **Needs:** to borrow a curator's agenda in one step, and to see it land as seats.
+- **Seeded as:** Wren Okafor, Product Reviewer at the ORBIT Demo Desk, listed in the
+  user switcher so a reviewer can try cloning by hand. Priya Raman and Tomas Berg are the
+  same persona, hidden from the switcher and kept for tests.
